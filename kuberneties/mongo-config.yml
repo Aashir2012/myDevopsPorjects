@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-config
+data:
+  MONGODB_URL: "mongodb://mongo-app-service:27017/jsamazona"
+  
