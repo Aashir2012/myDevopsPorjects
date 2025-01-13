@@ -1,8 +1,8 @@
 FROM node:12.4.0
 
-WORKDIR /ecomerce-backend
+COPY ../app/ /app/
 
-COPY . .
+WORKDIR /app
 
 ENV MONGODB_URL=mongodb+srv://vermaaashir:Jan%409304@cluster0.udwjv.mongodb.net/jsamazona
 
