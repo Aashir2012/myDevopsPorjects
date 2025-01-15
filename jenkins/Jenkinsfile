@@ -1,0 +1,56 @@
+pipeline {
+    agent any
+    environment{
+        Docker_Image = 'my-web-app'
+        Docker_Tag = "${env.BUILD_NUMBER}"
+        PATH = "/usr/local/bin:$PATH"
+    }
+    
+    stages {
+        stage('Git checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Aashir2012/myDevopsPorjects.git'
+            }
+        }
+        stage('Docker Build') {
+            steps {
+                sh 'echo "this is docker build step"'
+                script{
+                   sh 'docker build -t averma9/${Docker_Image}:${Docker_Tag} -f Docker/Dockerfile .'
+                }
+                
+            }
+        }
+        
+        stage('Push the image to dockerhub and running the container') {
+            steps {
+                
+                 sh 'echo "this is docker push step"'
+                script{
+                    
+                  withCredentials([usernamePassword(credentialsId: 'docker-token', passwordVariable: 'dockerPassword', usernameVariable: 'dockerUser')]) 
+                 {
+                   sh 'echo "$dockerPassword" | docker login --username $dockerUser --password-stdin'
+                   sh 'docker push averma9/${Docker_Image}:${Docker_Tag}'
+                   sh 'docker-compose -f Docker/docker-compose.yml up -d'
+                   }
+                    
+                }
+                
+            }
+        }
+        
+        stage('k8s deployment') {
+            steps {
+                script{
+                  withKubeConfig([credentialsId: 'minikubeconfig']) {
+                    sh 'kubectl apply -f k8s/mongo-db.yml'
+                    sh 'kubectl apply -f k8s/mongo-config.yml'
+                    sh 'kubectl apply -f k8s/e-comerce-frontend.yml'
+                    }
+                }
+            }
+        }
+        
+    }
+}
